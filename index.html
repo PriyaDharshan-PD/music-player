@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Professional Music Player</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<div class="player">
+
+    <h1>🎵 Music Player</h1>
+
+    <p class="subtitle">
+        Upload and play your favourite music
+    </p>
+
+    <!-- Upload Area -->
+
+    <div class="upload-box">
+
+        <label for="songUpload">
+
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+
+            <span>Upload MP3, FLAC or WAV</span>
+
+        </label>
+
+        <input
+            type="file"
+            id="songUpload"
+            accept=".mp3,.wav,.flac,audio/mpeg,audio/wav,audio/flac"
+            multiple>
+
+    </div>
+
+    <!-- Album Cover -->
+
+    <div class="cover-container">
+
+        <img src="images/cover.jpg"
+             class="cover"
+             id="coverImage"
+             alt="Album Cover">
+
+    </div>
+
+    <!-- Song Information -->
+
+    <div class="song-info">
+
+        <h2 id="title">No Song Selected</h2>
+
+        <p id="artist">
+            Upload your music to begin
+        </p>
+
+    </div>
+
+    <!-- Audio -->
+
+    <audio id="audio"></audio>
+
+    <!-- Progress -->
+
+    <div class="progress-section">
+
+        <span id="current">0:00</span>
+
+        <input
+            type="range"
+            id="progress"
+            value="0"
+            min="0"
+            max="100">
+
+        <span id="duration">0:00</span>
+
+    </div>
+
+    <!-- Main Controls -->
+
+    <div class="controls">
+
+        <button id="shuffle" title="Shuffle">
+            <i class="fa-solid fa-shuffle"></i>
+        </button>
+
+        <button id="prev" title="Previous">
+            <i class="fa-solid fa-backward-step"></i>
+        </button>
+
+        <button id="play" class="play-button" title="Play">
+
+            <i class="fa-solid fa-play"></i>
+
+        </button>
+
+        <button id="next" title="Next">
+            <i class="fa-solid fa-forward-step"></i>
+        </button>
+
+        <button id="repeat" title="Repeat">
+            <i class="fa-solid fa-repeat"></i>
+        </button>
+
+    </div>
+
+    <!-- Volume -->
+
+    <div class="volume-section">
+
+        <i class="fa-solid fa-volume-low"></i>
+
+        <input
+            type="range"
+            id="volume"
+            min="0"
+            max="1"
+            value="1"
+            step="0.01">
+
+        <i class="fa-solid fa-volume-high"></i>
+
+    </div>
+
+    <!-- Equalizer Animation -->
+
+    <div class="equalizer" id="equalizer">
+
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+
+    </div>
+
+    <!-- Playlist -->
+
+    <div class="playlist-container">
+
+        <div class="playlist-header">
+
+            <h3>
+
+                <i class="fa-solid fa-list-music"></i>
+
+                Playlist
+
+            </h3>
+
+            <span id="songCount">
+
+                0 Songs
+
+            </span>
+
+        </div>
+
+        <ul id="playlist">
+
+        </ul>
+
+    </div>
+
+</div>
+
+<!-- Footer -->
+
+<footer>
+
+    
+
+</footer>
+
+<script src="script1.js"></script>
+
+</body>
+
+</html>
