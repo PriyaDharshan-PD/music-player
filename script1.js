@@ -232,6 +232,8 @@ function startGlowAnimation() {
 
             cover.style.setProperty("--glow-opacity", "0.24");
 
+            requestAnimationFrame(animate);
+
             return;
 
         }
