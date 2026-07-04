@@ -900,17 +900,19 @@ transform:scale(1.25);
 
 .eq-section{
 
-display:flex;
+display:grid;
 
-gap:14px;
+grid-template-columns:repeat(3, minmax(0, 1fr));
+
+gap:12px;
 
 margin-bottom:24px;
+
+align-items:end;
 
 }
 
 .eq-control{
-
-flex:1;
 
 display:flex;
 
@@ -926,9 +928,22 @@ font-weight:600;
 
 letter-spacing:.4px;
 
+min-width:0;
+
+}
+
+.eq-control span{
+
+display:block;
+
 }
 
 .eq-control input{
+	display:block;
+
+width:100%;
+
+min-width:0;
 
 appearance:none;
 
@@ -1309,6 +1324,12 @@ font-size:21px;
 .player{
 
 padding:20px;
+
+}
+
+.eq-section{
+
+grid-template-columns:1fr;
 
 }
 
