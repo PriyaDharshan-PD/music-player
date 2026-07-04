@@ -81,6 +81,20 @@ let leftGain;
 
 let rightGain;
 
+let analyser;
+
+let analyserData;
+
+let glowHue = 220;
+
+let glowLevel = 0.2;
+
+let beatDecay = 0;
+
+let lastBeatAt = 0;
+
+let smoothedBass = 0;
+
 enterPlayerBtn.addEventListener("click", () => {
 
     welcomeScreen.classList.add("hidden");
@@ -136,11 +150,21 @@ function setupAudioEffects() {
 
     rightGain = audioContext.createGain();
 
+    analyser = audioContext.createAnalyser();
+
+    analyser.fftSize = 256;
+
+    analyser.smoothingTimeConstant = 0.88;
+
+    analyserData = new Uint8Array(analyser.frequencyBinCount);
+
     const masterGain = audioContext.createGain();
 
     masterGain.gain.value = 1;
 
-    audioSource.connect(stereoSplitter);
+    audioSource.connect(analyser);
+
+    analyser.connect(stereoSplitter);
 
     stereoSplitter.connect(leftGain, 0);
 
@@ -159,6 +183,8 @@ function setupAudioEffects() {
     masterGain.connect(audioContext.destination);
 
     updateAudioEffects();
+
+    startGlowAnimation();
 
 }
 
@@ -179,6 +205,89 @@ function updateAudioEffects() {
         rightGain.gain.value = Math.max(0.1, 1 - amount);
 
     }
+
+}
+
+function startGlowAnimation() {
+
+    const cover = document.getElementById("coverImage");
+
+    if (!cover || !analyser) return;
+
+    const animate = () => {
+
+        if (!cover) return;
+
+        if (!isPlaying || !audioContext || audioContext.state !== "running") {
+
+            glowLevel = 0.2;
+
+            beatDecay = 0;
+
+            cover.style.setProperty("--glow-intensity", "0.18");
+
+            cover.style.setProperty("--glow-scale", "1");
+
+            cover.style.setProperty("--glow-hue", "220");
+
+            cover.style.setProperty("--glow-opacity", "0.24");
+
+            return;
+
+        }
+
+        analyser.getByteFrequencyData(analyserData);
+
+        let bassEnergy = 0;
+
+        const sampleCount = Math.min(8, analyserData.length);
+
+        for (let i = 0; i < sampleCount; i++) {
+
+            bassEnergy += analyserData[i];
+
+        }
+
+        bassEnergy = bassEnergy / (sampleCount * 255);
+        smoothedBass = smoothedBass * 0.78 + bassEnergy * 0.22;
+
+        const now = performance.now();
+
+        const beatThreshold = 0.6 + smoothedBass * 0.15;
+
+        if (smoothedBass > beatThreshold && now - lastBeatAt > 120) {
+
+            beatDecay = 1;
+            lastBeatAt = now;
+            glowHue = (glowHue + 60) % 360;
+
+        }
+
+        beatDecay = Math.max(0, beatDecay - 0.12);
+
+        const energyBoost = Math.min(0.9, smoothedBass * 0.7 + beatDecay * 0.45);
+
+        glowLevel = glowLevel * 0.82 + (0.18 + energyBoost * 0.85) * 0.18;
+
+        const intensity = 0.18 + glowLevel * 0.82;
+
+        const scale = 1 + Math.min(0.05, energyBoost * 0.05 + beatDecay * 0.01);
+
+        const hue = (glowHue + Math.min(80, energyBoost * 90)) % 360;
+
+        cover.style.setProperty("--glow-intensity", intensity.toFixed(3));
+
+        cover.style.setProperty("--glow-scale", scale.toFixed(3));
+
+        cover.style.setProperty("--glow-hue", hue.toFixed(1));
+
+        cover.style.setProperty("--glow-opacity", (0.2 + intensity * 0.5).toFixed(3));
+
+        requestAnimationFrame(animate);
+
+    };
+
+    requestAnimationFrame(animate);
 
 }
 
