@@ -21,6 +21,10 @@ const progress = document.getElementById("progress");
 
 const volume = document.getElementById("volume");
 
+const bass = document.getElementById("bass");
+
+const treble = document.getElementById("treble");
+
 const current = document.getElementById("current");
 
 const duration = document.getElementById("duration");
@@ -39,6 +43,12 @@ const songCount = document.getElementById("songCount");
 
 const equalizer = document.getElementById("equalizer");
 
+const welcomeScreen = document.getElementById("welcomeScreen");
+
+const playerShell = document.getElementById("playerShell");
+
+const enterPlayerBtn = document.getElementById("enterPlayerBtn");
+
 // =====================
 // Variables
 // =====================
@@ -52,6 +62,22 @@ let isPlaying = false;
 let shuffle = false;
 
 let repeat = false;
+
+let audioContext;
+
+let bassFilter;
+
+let trebleFilter;
+
+let audioSource;
+
+enterPlayerBtn.addEventListener("click", () => {
+
+    welcomeScreen.classList.add("hidden");
+
+    playerShell.classList.remove("hidden");
+
+});
 
 
 // =====================
@@ -67,6 +93,54 @@ const supported = [
 "flac"
 
 ];
+
+function setupAudioEffects() {
+
+    if (audioContext) return;
+
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    audioSource = audioContext.createMediaElementSource(audio);
+
+    bassFilter = audioContext.createBiquadFilter();
+
+    bassFilter.type = "lowshelf";
+
+    bassFilter.frequency.value = 200;
+
+    bassFilter.gain.value = Number(bass.value);
+
+    trebleFilter = audioContext.createBiquadFilter();
+
+    trebleFilter.type = "highshelf";
+
+    trebleFilter.frequency.value = 2000;
+
+    trebleFilter.gain.value = Number(treble.value);
+
+    const masterGain = audioContext.createGain();
+
+    masterGain.gain.value = 1;
+
+    audioSource.connect(bassFilter);
+
+    bassFilter.connect(trebleFilter);
+
+    trebleFilter.connect(masterGain);
+
+    masterGain.connect(audioContext.destination);
+
+}
+
+function updateAudioEffects() {
+
+    if (!bassFilter || !trebleFilter) return;
+
+    bassFilter.gain.value = Number(bass.value);
+
+    trebleFilter.gain.value = Number(treble.value);
+
+}
 
 // =====================
 // Upload Songs
@@ -156,6 +230,32 @@ highlightSong();
 
 }
 
+function animateButtonPress(button){
+
+const ripple=document.createElement("span");
+
+ripple.className="ripple";
+
+button.appendChild(ripple);
+
+setTimeout(()=>ripple.remove(), 550);
+
+}
+
+function setPlaybackState(isActive){
+
+playBtn.classList.toggle("is-playing", isActive);
+
+playBtn.querySelector("i").className = isActive ? "fa-solid fa-pause" : "fa-solid fa-play";
+
+if(equalizer){
+
+equalizer.classList.toggle("visible", isActive);
+
+}
+
+}
+
 // =====================
 // Highlight Current Song
 // =====================
@@ -206,16 +306,33 @@ async function playSong() {
 
     if (songs.length === 0) return;
 
+    setupAudioEffects();
+
+    if (audioContext && audioContext.state === "suspended") {
+
+        await audioContext.resume();
+
+    }
+
     try {
 
         await audio.play();
 
         isPlaying = true;
 
-        playBtn.querySelector("i").className =
-"fa-solid fa-pause";
+        setPlaybackState(true);
 
-        equalizer.style.visibility = "visible";
+        const cover = document.getElementById("coverImage");
+
+        if(cover){
+
+            cover.classList.remove("song-changing");
+
+            void cover.offsetWidth;
+
+            cover.classList.add("song-changing");
+
+        }
 
     } catch (err) {
 
@@ -237,10 +354,7 @@ audio.pause();
 
 isPlaying=false;
 
-playBtn.querySelector("i").className =
-"fa-solid fa-play";
-
-equalizer.style.visibility="hidden";
+setPlaybackState(false);
 
 }
 
@@ -249,6 +363,8 @@ equalizer.style.visibility="hidden";
 // =====================
 
 playBtn.addEventListener("click",()=>{
+
+animateButtonPress(playBtn);
 
 if(songs.length===0){
 
@@ -278,6 +394,8 @@ prevBtn.addEventListener("click",()=>{
 
 if(songs.length===0) return;
 
+animateButtonPress(prevBtn);
+
 currentSong--;
 
 if(currentSong<0)
@@ -298,6 +416,8 @@ nextBtn.addEventListener("click",()=>{
 
 if(songs.length===0) return;
 
+animateButtonPress(nextBtn);
+
 currentSong++;
 
 if(currentSong>=songs.length)
@@ -314,7 +434,7 @@ playSong();
 // Initial State
 // =====================
 
-equalizer.style.visibility="hidden";
+setPlaybackState(false);
 
 volume.value=1;
 
@@ -408,6 +528,18 @@ progress.addEventListener("input",()=>{
 volume.addEventListener("input",()=>{
 
     audio.volume = volume.value;
+
+});
+
+bass.addEventListener("input",()=>{
+
+    updateAudioEffects();
+
+});
+
+treble.addEventListener("input",()=>{
+
+    updateAudioEffects();
 
 });
 
@@ -550,19 +682,11 @@ audio.volume=volume.value;
 
 shuffleBtn.addEventListener("click",()=>{
 
+    animateButtonPress(shuffleBtn);
+
     shuffle = !shuffle;
 
-    if(shuffle){
-
-        shuffleBtn.style.background="#E91E63";
-        shuffleBtn.style.color="white";
-
-    }else{
-
-        shuffleBtn.style.background="";
-        shuffleBtn.style.color="";
-
-    }
+    shuffleBtn.classList.toggle("active", shuffle);
 
 });
 
@@ -573,19 +697,11 @@ shuffleBtn.addEventListener("click",()=>{
 
 repeatBtn.addEventListener("click",()=>{
 
+    animateButtonPress(repeatBtn);
+
     repeat = !repeat;
 
-    if(repeat){
-
-        repeatBtn.style.background="#00C853";
-        repeatBtn.style.color="white";
-
-    }else{
-
-        repeatBtn.style.background="";
-        repeatBtn.style.color="";
-
-    }
+    repeatBtn.classList.toggle("active", repeat);
 
 });
 
@@ -650,12 +766,10 @@ volume.addEventListener("change",()=>{
 
 
 // ======================
-// LOAD VOLUME
+// LOAD SETTINGS
 // ======================
 
-window.addEventListener("load",()=>{
-
-    loadSettings();
+function loadSettings(){
 
     const saved = localStorage.getItem("musicVolume");
 
@@ -666,6 +780,26 @@ window.addEventListener("load",()=>{
         audio.volume = saved;
 
     }
+
+    const last = localStorage.getItem("lastSong");
+
+    if(last !== null){
+
+        const parsed = parseInt(last, 10);
+
+        if(!isNaN(parsed) && songs[parsed]){
+
+            currentSong = parsed;
+
+        }
+
+    }
+
+}
+
+window.addEventListener("load",()=>{
+
+    loadSettings();
 
 });
 
