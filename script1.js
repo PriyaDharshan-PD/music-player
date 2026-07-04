@@ -25,6 +25,8 @@ const bass = document.getElementById("bass");
 
 const treble = document.getElementById("treble");
 
+const stereo = document.getElementById("stereo");
+
 const current = document.getElementById("current");
 
 const duration = document.getElementById("duration");
@@ -70,6 +72,14 @@ let bassFilter;
 let trebleFilter;
 
 let audioSource;
+
+let stereoSplitter;
+
+let stereoMerger;
+
+let leftGain;
+
+let rightGain;
 
 enterPlayerBtn.addEventListener("click", () => {
 
@@ -118,17 +128,37 @@ function setupAudioEffects() {
 
     trebleFilter.gain.value = Number(treble.value);
 
+    stereoSplitter = audioContext.createChannelSplitter(2);
+
+    stereoMerger = audioContext.createChannelMerger(2);
+
+    leftGain = audioContext.createGain();
+
+    rightGain = audioContext.createGain();
+
     const masterGain = audioContext.createGain();
 
     masterGain.gain.value = 1;
 
-    audioSource.connect(bassFilter);
+    audioSource.connect(stereoSplitter);
+
+    stereoSplitter.connect(leftGain, 0);
+
+    stereoSplitter.connect(rightGain, 1);
+
+    leftGain.connect(stereoMerger, 0, 0);
+
+    rightGain.connect(stereoMerger, 0, 1);
+
+    stereoMerger.connect(bassFilter);
 
     bassFilter.connect(trebleFilter);
 
     trebleFilter.connect(masterGain);
 
     masterGain.connect(audioContext.destination);
+
+    updateAudioEffects();
 
 }
 
@@ -139,6 +169,16 @@ function updateAudioEffects() {
     bassFilter.gain.value = Number(bass.value);
 
     trebleFilter.gain.value = Number(treble.value);
+
+    if (leftGain && rightGain) {
+
+        const amount = Number(stereo.value);
+
+        leftGain.gain.value = 1 + amount;
+
+        rightGain.gain.value = Math.max(0.1, 1 - amount);
+
+    }
 
 }
 
@@ -538,6 +578,12 @@ bass.addEventListener("input",()=>{
 });
 
 treble.addEventListener("input",()=>{
+
+    updateAudioEffects();
+
+});
+
+stereo.addEventListener("input",()=>{
 
     updateAudioEffects();
 
